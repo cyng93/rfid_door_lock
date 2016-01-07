@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-import cameraHandler
+import helper
 import serial
 
-ser = serial.Serial('/dev/ttyACM0', '9600')
+ser = serial.Serial('/dev/ttyACM0', baudrate='9600')
 
 cyID="63326DC"
 whiteList=list()
@@ -25,9 +25,10 @@ while True:
             #ser.write("1")
         elif cmd=="ENQ" :
             if readCard in whiteList :
+                helper.granted_callback()
                 ser.write("1")
                 #print("R2A:1:"+readCard+":")
             else :
+                helper.denied_callback()
                 ser.write("0")
-                cameraHandler.takePhoto()
                 #print("R2A:0:"+readCard+":")

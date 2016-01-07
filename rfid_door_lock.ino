@@ -27,7 +27,7 @@
 
 #include <SPI.h>
 #include <MFRC522.h>
-#include <RFID.h>
+#include <Servo.h>
 
 
 #define MAX_CARD_NUMS 100
@@ -44,6 +44,10 @@
 #define redLed 7		// Set Led Pins
 #define greenLed 6
 #define blueLed 5
+
+#define servoPin 3
+#define SERVO_LOCK      120
+#define SERVO_UNLOCK    0
 
 ///////////////////////////////////////
 //    GLOBAL VARIABLE
@@ -73,12 +77,25 @@ byte whiteList[MAX_CARD_NUMS][4];
 #define SS_PIN 10
 #define RST_PIN 9
 MFRC522 mfrc522(SS_PIN, RST_PIN);	// Create MFRC522 instance.
+Servo servo0;        // Create servo object
 
 ///////////////////////////////////////
 // void setup()
 ///////////////////////////////////////
 void setup()
 {
+    servo0.attach(servoPin);
+    
+    //Arduino Pin Configuration
+    pinMode(redLed, OUTPUT);
+    pinMode(greenLed, OUTPUT);
+    pinMode(blueLed, OUTPUT);
+    //Be careful how relay circuit behave on while resetting or power-cycling your Arduino
+    servo0.write(SERVO_LOCK);    	// Make sure door is locked
+    digitalWrite(redLed, LED_OFF);	// Make sure led is off
+    digitalWrite(greenLed, LED_OFF);	// Make sure led is off
+    digitalWrite(blueLed, LED_OFF);	// Make sure led is off
+  
     //Protocol Configuration
     Serial.begin(9600);	 // Initialize serial communications with PC
     SPI.begin();           // MFRC522 Hardware uses SPI protocol
@@ -86,7 +103,6 @@ void setup()
     
     //If you set Antenna Gain to Max it will increase reading distance
     mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
-    
     
     Serial.println(F("Scan A PICC to Define as Master Card"));
     do {
@@ -176,10 +192,12 @@ void granted (int setDelay) {
     digitalWrite(blueLed, LED_OFF); 	// Turn off blue LED
     digitalWrite(redLed, LED_OFF); 	// Turn off red LED
     digitalWrite(greenLed, LED_ON); 	// Turn on green LED
-    //digitalWrite(relay, LOW); 		// Unlock door!
-    delay(setDelay); 					// Hold door lock open for given seconds
-    //digitalWrite(relay, HIGH); 		// Relock door
-    delay(1000); 						// Hold green LED on for a second
+    //servo0.write(SERVO_UNLOCK);	        // Unlock door!
+    Serial.println("after unlock!");
+    delay(setDelay); 			// Hold door lock open for given seconds
+    //servo0.write(SERVO_LOCK); 		// Relock door
+    Serial.println("after lock!");
+    delay(1000); 			// Hold green LED on for a second
 }
 
 
@@ -245,7 +263,7 @@ void normalModeOn () {
     digitalWrite(blueLed, LED_ON); 	// Blue LED ON and ready to read card
     digitalWrite(redLed, LED_OFF); 	// Make sure Red LED is off
     digitalWrite(greenLed, LED_OFF); 	// Make sure Green LED is off
-    // Make sure Door is Locked
+    servo0.write(SERVO_LOCK);                  // Make sure Door is Locked
 }
 
 
